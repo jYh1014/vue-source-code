@@ -21,11 +21,16 @@ function createElement(vnode){
   let children = vnode.children
   if(tag){
     vnode.elm = document.createElement(tag) 
-    if(data.attrs){
-      let attrs = data.attrs
-      for(let key in attrs){
-        vnode.elm.setAttribute(key,attrs[key])
-      }
+    if(data){
+      let attrs = data
+      // for(let key in attrs){
+      //   //attrs = {a:{m:'',n:''},b:{}}
+      //   if(typeof attrs[key] == 'object'){
+
+      //   }
+      //   vnode.elm.setAttribute(key,attrs[key])
+      // }
+      traversalObject(attrs, vnode.elm)
     }
     if(children){
       createChildren(vnode, children)
@@ -35,7 +40,16 @@ function createElement(vnode){
   }
   return vnode.elm
 }
-
+function traversalObject(obj, elm){//深层遍历对象
+  for(let key in obj){
+    if(typeof obj[key] == 'object'){
+      traversalObject(obj[key], elm)
+    }else{
+     elm.setAttribute(key,obj[key])
+    }
+    
+  }
+}
 function createChildren(vnode, children){
   for(let i = 0;i < children.length; i ++){
     vnode.elm.appendChild(createElement(children[i]))
@@ -59,17 +73,16 @@ function render () {
   return new vnode(
     'div',
     {
+      'class': {'outer': true},
       attrs: {
-        'class': 'outer'
+        id: 'content'
       }
     },
     [
       new vnode(
         'h2',
         { 
-          attrs: {
-            'class': 'inner'
-          }
+          'class': 'inner'
         },
         [new vnode(undefined, undefined, undefined, 'Hello world')]
       )
