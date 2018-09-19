@@ -1,21 +1,19 @@
 
 //step1:
 //参数options:{el:"#demo",data:{message:"hello"},render:function createElement(){}}
-function Vue(options){
-  return 
-}
 
 (function(){
   //创建虚拟dom
-function vnode(tag, data, children, text){
-  this.tag = tag
-  this.data = data
-  this.children = children
-  this.text = text
-}
+  function vnode (tag, data, children, text, elm) {
+    this.tag = tag;
+    this.data = data;
+    this.children = children;
+    this.text = text;
+    this.elm = elm;
+  }
 
 //创建节点
-function createElement(vnode){
+function createElm(vnode){
   let data = vnode.data
   let tag = vnode.tag
   let children = vnode.children
@@ -34,6 +32,21 @@ function createElement(vnode){
   }
   return vnode.elm
 }
+function createElement(tag, data, children, text){
+  return new vnode(tag, data, normalizeChildren(children), createTextVNode(text))
+}
+
+function normalizeChildren(children){
+  if(typeof children == 'string'){
+    return [createTextVNode(children)]
+  }
+  return children
+}
+
+function createTextVNode(text){
+  return new vnode(undefined, undefined, undefined, String(text)) 
+}
+
 function traversalObject(obj, elm){//深层遍历对象
   for(let key in obj){
     if(typeof obj[key] == 'object'){
@@ -46,10 +59,11 @@ function traversalObject(obj, elm){//深层遍历对象
 }
 function createChildren(vnode, children){
   for(let i = 0;i < children.length; i ++){
-    vnode.elm.appendChild(createElement(children[i]))
+    vnode.elm.appendChild(createElm(children[i]))
   }
 }
 function Vue(options){
+  debugger
   this.$options = options
   initData(this)
   this.mount(document.querySelector(options.el))
@@ -60,19 +74,23 @@ Vue.prototype.mount = function(el){
   this.patch(this.$el, vnode)
 }
 Vue.prototype.patch = function(oldVnode, vnode){
-  createElement(vnode)
-  let isRealElement = oldVnode.nodeType !== undefined
-  if(isRealElement){
-    var parent = oldVnode.parentNode
-    if(parent){
-      parent.insertBefore(vnode.elm, oldVnode)
-      parent.removeChild(oldVnode)
+    
+    let isRealElement = oldVnode.nodeType !== undefined
+    if(isRealElement){
+      createElm(vnode)
+      var parent = oldVnode.parentNode
+      if(parent){
+        parent.insertBefore(vnode.elm, oldVnode)
+        parent.removeChild(oldVnode)
+      }
     }
-  }
+  
+
   return vnode.elm
 }
 
 function initData(vm){
+  
   let data = vm.$data = vm.$options.data
   let keys = Object.keys(data)
   let i = keys.length
@@ -98,8 +116,7 @@ let vue = new Vue({
     message: 'hello'
   },
   render: function(){
-    console.log(this.message)
-    return new vnode(
+    return createElement(
       'div',
       {
         'class': 'outer',
@@ -109,12 +126,12 @@ let vue = new Vue({
         }
       },
       [
-        new vnode(
+        createElement(
           'h2',
           { 
             'class': 'inner'
           },
-          [new vnode(undefined, undefined, undefined, this.message)]
+          this.message
         )
       ]
     )
