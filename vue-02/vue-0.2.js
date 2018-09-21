@@ -14,7 +14,6 @@
 
   //创建节点
   function createElm(vnode) {
-    console.log(vnode)
     let data = vnode.data
     let tag = vnode.tag
     let children = vnode.children
@@ -61,6 +60,12 @@
     for (let i = 0; i < children.length; i++) {
       vnode.elm.appendChild(createElm(children[i]))
     }
+  }
+  function sameVnode (vnode1, vnode2){
+    return vnode1.tag === vnode2.tag
+  }
+  function patchVnode(oldVnode, vnode){
+
   }
   function Vue(options) {
     debugger
