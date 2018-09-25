@@ -61,7 +61,12 @@
       vnode.elm.appendChild(createElm(children[i]))
     }
   }
+  function sameVnode (vnode1, vnode2){
+    return vnode1.tag === vnode2.tag
+  }
+  function patchVnode(oldVnode, vnode){
 
+  }
   function Vue(options) {
     debugger
     this.$options = options
