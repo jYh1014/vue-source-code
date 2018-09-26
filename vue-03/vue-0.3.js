@@ -61,37 +61,83 @@
       vnode.elm.appendChild(createElm(children[i]))
     }
   }
-  function sameVnode (vnode1, vnode2){
+  function emptyNodeAt (elm) {
+    return new vnode(elm.tagName.toLowerCase(), {}, [], undefined, elm)
+  }
+  function sameVnode (vnode1, vnode2) {
     return vnode1.tag === vnode2.tag
   }
-  function patchVnode(oldVnode, vnode){
 
+  function patchVnode (oldVnode, vnode) {
+    var elm = vnode.elm = oldVnode.elm;
+    var oldCh = oldVnode.children;
+    var ch = vnode.children;
+
+    if (!vnode.text) {
+      if (oldCh && ch) {
+        updateChildren(oldCh, ch);
+      }
+    } else if (oldVnode.text !== vnode.text) {
+      elm.textContent = vnode.text;
+    }
   }
-  function Vue(options) {
+
+  function updateChildren (oldCh, newCh) {
+    // assume that every element node has only one child to simplify our diff algorithm
+    if (sameVnode(oldCh[0], newCh[0])) {
+      patchVnode(oldCh[0], newCh[0])
+    } else {
+      patch(oldCh[0], newCh[0])
+    }
+  }
+
+  function Vue (options) {
     debugger
-    this.$options = options
-    initData(this)
-    this.mount(document.querySelector(options.el))
+    var vm = this;
+    vm.$options = options;
+    
+    initData(vm);
+    vm.mount(document.querySelector(options.el))
   }
   Vue.prototype.mount = function (el) {
-    this.$el = el
-    let vnode = this.$options.render.call(this)
-    this.patch(this.$el, vnode)
+    var vm = this;
+    vm.$el = el;
+    vm.update(vm.render())
   }
-  Vue.prototype.patch = function (oldVnode, vnode) {
-
-    let isRealElement = oldVnode.nodeType !== undefined
-    if (isRealElement) {
-      createElm(vnode)
-      var parent = oldVnode.parentNode
-      if (parent) {
-        parent.insertBefore(vnode.elm, oldVnode)
-        parent.removeChild(oldVnode)
-      }
+  Vue.prototype.update = function (vnode) {
+    var vm = this;
+    var prevVnode = vm._vnode;
+    vm._vnode = vnode;
+    if (!prevVnode) {
+      vm.$el = vm.patch(vm.$el, vnode);
+    } else {
+      vm.$el = vm.patch(prevVnode, vnode);
     }
+  }
+  Vue.prototype.render = function () {
+    var vm = this;
+    return vm.$options.render.call(vm)
+  }
+  function patch (oldVnode, vnode) {
+    var isRealElement = oldVnode.nodeType !== undefined; // virtual node has no `nodeType` property
+    if (!isRealElement && sameVnode(oldVnode, vnode)) {
+      patchVnode(oldVnode, vnode);
+    } else {
+      if (isRealElement) {
+        oldVnode = emptyNodeAt(oldVnode);
+      }
+      var elm = oldVnode.elm;
+      var parent = elm.parentNode;
+      
+      createElm(vnode);
+
+      parent.insertBefore(vnode.elm, elm);
+      parent.removeChild(elm);
+    }
+
     return vnode.elm
   }
-
+  Vue.prototype.patch = patch
   function initData(vm) {
 
     let data = vm.$data = vm.$options.data
@@ -113,10 +159,11 @@
       }
     })
   }
-  let vue = new Vue({
+ 
+  let vm = new Vue({
     el: '#app',
     data: {
-      message: 'hello'
+      message: 'hello ppp'
     },
     render: function () {
       return createElement(
