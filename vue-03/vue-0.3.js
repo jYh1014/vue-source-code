@@ -32,7 +32,8 @@
     return vnode.elm
   }
   function createElement(tag, data, children, text) {
-    return new vnode(tag, data, normalizeChildren(children), createTextVNode(text))
+
+    return new vnode(tag, data, children?normalizeChildren(children):undefined, text?createTextVNode(text):undefined)
   }
 
   function normalizeChildren(children) {
@@ -188,6 +189,10 @@
       )
     }
   })
-
+  setTimeout(function () {
+    debugger
+    vm.message = 'Hello';
+    vm.update(vm.render())
+  }, 1000)
 })()
 
